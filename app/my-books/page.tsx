@@ -54,74 +54,85 @@ export default function MyBooksPage() {
   }
 
   return (
-    <div className="flex-1">
-      <section className="max-w-7xl mx-auto px-6 pt-12 pb-10">
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
-          My Books
-        </h1>
-        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-          Your saved favorites. Hover over a book to remove it.
-        </p>
+    <div className="flex-1 bg-black text-white">
+      {/* Header */}
+      <section className="relative overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-b from-rose-600/5 to-transparent" />
+        <div className="relative max-w-[1400px] mx-auto px-8 py-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter">
+            My Books
+          </h1>
+          <p className="mt-3 text-zinc-400 text-base">
+            Your personal collection. Hover to remove.
+          </p>
+        </div>
       </section>
 
-      <div className="border-t border-stone-200 dark:border-stone-800" />
-
-      <section className="max-w-7xl mx-auto px-6 py-10">
+      <section className="max-w-[1400px] mx-auto px-8 py-12">
         {loading ? (
           <div className="flex justify-center py-24">
-            <div className="h-5 w-5 border-2 border-stone-300 dark:border-stone-600 border-t-stone-900 dark:border-t-stone-100 rounded-full animate-spin" />
+            <div className="h-6 w-6 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
           </div>
         ) : books.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-stone-400 dark:text-stone-500 text-sm">
-              You haven&apos;t saved any books yet.
-            </p>
+            <p className="text-zinc-500 text-lg">Nothing here yet.</p>
             <Link
               href="/search"
-              className="inline-block mt-4 px-5 py-2.5 text-sm font-medium bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors"
+              className="inline-block mt-6 px-6 py-3 bg-white text-black font-bold rounded-full hover:bg-zinc-200 transition-colors"
             >
-              Search for books
+              Find books to add
             </Link>
           </div>
         ) : (
           <>
-            <p className="text-xs font-medium uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">
-              {books.length} {books.length === 1 ? "book" : "books"}
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
+            <div className="flex items-center gap-4 mb-8">
+              <p className="text-sm text-zinc-500 uppercase tracking-widest font-medium">
+                {books.length} {books.length === 1 ? "book" : "books"} saved
+              </p>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
               {books.map((book) => (
-                <div key={book.id} className="group relative">
-                  <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-sm group-hover:shadow-lg transition-shadow duration-300">
+                <div key={book.id} className="group">
+                  <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900 ring-1 ring-white/5 group-hover:ring-red-400/50 group-hover:shadow-[0_0_30px_-5px_rgba(248,113,113,0.3)] transition-all duration-300">
                     {book.cover_url ? (
                       <Image
                         src={book.cover_url}
                         alt={book.title}
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                        className="object-cover"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-stone-300 dark:text-stone-600 text-xs">No cover</span>
+                      <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
                       </div>
                     )}
-                    {/* Remove overlay on hover */}
+                    {/* Remove overlay */}
                     <button
                       onClick={() => handleRemove(book.id)}
                       disabled={removingId === book.id}
-                      className="absolute inset-0 bg-stone-900/0 group-hover:bg-stone-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                      className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer backdrop-blur-sm"
                     >
-                      <span className="text-white text-xs font-medium px-3 py-1.5 rounded-md bg-red-600 hover:bg-red-700 transition-colors">
-                        {removingId === book.id ? "Removing..." : "Remove"}
-                      </span>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </div>
+                        <span className="text-white text-xs font-bold uppercase tracking-wider">
+                          {removingId === book.id ? "Removing..." : "Remove"}
+                        </span>
+                      </div>
                     </button>
+                    {/* Bottom info on hover */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                      <p className="text-white text-xs font-bold line-clamp-2">{book.title}</p>
+                      <p className="text-zinc-400 text-[11px]">{book.author}</p>
+                    </div>
                   </div>
-                  <h3 className="mt-3 text-sm font-medium text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
-                    {book.title}
-                  </h3>
-                  <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
-                    {book.author}
-                  </p>
                 </div>
               ))}
             </div>

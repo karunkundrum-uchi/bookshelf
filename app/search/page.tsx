@@ -92,104 +92,111 @@ function SearchContent() {
   }
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 bg-black text-white">
       {/* Search header */}
-      <section className="max-w-7xl mx-auto px-6 pt-12 pb-10">
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
-          Search
-        </h1>
-        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-          Find a book and click to add it to the class bookshelf.
-        </p>
+      <section className="relative overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0 bg-gradient-to-b from-orange-600/5 to-transparent" />
+        <div className="relative max-w-[1400px] mx-auto px-8 py-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter">
+            Search
+          </h1>
+          <p className="mt-3 text-zinc-400 text-base">
+            Click any book to add it to the class bookshelf.
+          </p>
 
-        <form onSubmit={handleSearch} className="mt-6 flex gap-2 max-w-lg">
-          <div className="relative flex-1">
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Title, author, or keyword..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-stone-100/10 focus:border-stone-300 dark:focus:border-stone-600 transition-all"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2.5 text-sm font-medium bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors disabled:opacity-40"
-          >
-            {loading ? "Searching..." : "Search"}
-          </button>
-        </form>
+          <form onSubmit={handleSearch} className="mt-8 max-w-md mx-auto">
+            <div className="relative group">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Title, author, or keyword..."
+                className="w-full px-6 py-4 rounded-full bg-white/10 border border-white/10 text-white placeholder-zinc-500 text-base focus:outline-none focus:bg-white/15 focus:border-white/25 transition-all backdrop-blur-sm"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-zinc-200 transition-colors disabled:opacity-40"
+              >
+                {loading ? "..." : "Go"}
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
-      <div className="border-t border-stone-200 dark:border-stone-800" />
-
       {/* Results */}
-      <section className="max-w-7xl mx-auto px-6 py-10">
+      <section className="max-w-[1400px] mx-auto px-8 py-12">
         {saveError && (
-          <div className="mb-6 px-4 py-2.5 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
+          <div className="mb-8 px-5 py-3 text-sm text-red-400 bg-red-500/10 rounded-xl border border-red-500/20">
             {saveError}
           </div>
         )}
 
         {loading && (
           <div className="flex justify-center py-24">
-            <div className="h-5 w-5 border-2 border-stone-300 dark:border-stone-600 border-t-stone-900 dark:border-t-stone-100 rounded-full animate-spin" />
+            <div className="h-6 w-6 border-2 border-zinc-700 border-t-white rounded-full animate-spin" />
           </div>
         )}
 
         {!loading && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
-            {results.map((book) => (
-              <button
-                key={book.key}
-                onClick={() => handleSave(book)}
-                className="group text-left cursor-pointer"
-              >
-                <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-sm group-hover:shadow-lg group-hover:ring-2 group-hover:ring-stone-900/20 dark:group-hover:ring-stone-100/20 transition-all duration-200">
-                  {savedKey === book.key && (
-                    <div className="absolute inset-0 z-10 bg-stone-900/70 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">Added</span>
+          <>
+            <div className="flex items-center gap-4 mb-8">
+              <p className="text-sm text-zinc-500 uppercase tracking-widest font-medium">{results.length} results</p>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+              {results.map((book) => (
+                <button
+                  key={book.key}
+                  onClick={() => handleSave(book)}
+                  className="group text-left cursor-pointer"
+                >
+                  <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900 ring-1 ring-white/5 group-hover:ring-green-400/50 group-hover:shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)] transition-all duration-300">
+                    {savedKey === book.key && (
+                      <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <span className="text-white text-xs font-bold uppercase tracking-wider">Added</span>
+                        </div>
+                      </div>
+                    )}
+                    {book.cover_i ? (
+                      <Image
+                        src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                        alt={book.title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                    )}
+                    {/* Bottom info on hover */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <p className="text-white text-xs font-bold line-clamp-2">{book.title}</p>
+                      {book.author_name && (
+                        <p className="text-zinc-400 text-[11px] line-clamp-1">{book.author_name[0]}</p>
+                      )}
                     </div>
-                  )}
-                  {book.cover_i ? (
-                    <Image
-                      src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
-                      alt={book.title}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-stone-300 dark:text-stone-600 text-xs">No cover</span>
-                    </div>
-                  )}
-                </div>
-                <h3 className="mt-3 text-sm font-medium text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
-                  {book.title}
-                </h3>
-                {book.author_name && (
-                  <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400 line-clamp-1">
-                    {book.author_name[0]}
-                  </p>
-                )}
-                {book.first_publish_year && (
-                  <p className="text-xs text-stone-400 dark:text-stone-500">
-                    {book.first_publish_year}
-                  </p>
-                )}
-              </button>
-            ))}
-          </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {!loading && results.length === 0 && query && (
-          <p className="text-center text-stone-400 dark:text-stone-500 py-24 text-sm">
-            No results found for &ldquo;{query}&rdquo;
+          <p className="text-center text-zinc-500 py-24 text-base">
+            Nothing found for &ldquo;{query}&rdquo;
           </p>
         )}
       </section>
