@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useUser, useSession } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { createClerkSupabaseClient } from "@/lib/supabase";
@@ -16,6 +16,14 @@ interface SearchResult {
 }
 
 export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchContent />
+    </Suspense>
+  );
+}
+
+function SearchContent() {
   const { user } = useUser();
   const { session } = useSession();
   const searchParams = useSearchParams();
