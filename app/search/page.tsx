@@ -92,115 +92,107 @@ function SearchContent() {
   }
 
   return (
-    <div className="flex-1 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-gray-950 dark:to-gray-900">
-      {/* Search Section */}
-      <section className="max-w-6xl mx-auto px-6 pt-12 pb-8 text-center">
-        <h2 className="text-3xl font-extrabold text-amber-900 dark:text-amber-100 tracking-tight">
-          Search Books
-        </h2>
-        <p className="mt-2 text-amber-700/70 dark:text-amber-300/60">
-          Click on a book to add it to the class bookshelf
+    <div className="flex-1">
+      {/* Search header */}
+      <section className="max-w-7xl mx-auto px-6 pt-12 pb-10">
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+          Search
+        </h1>
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+          Find a book and click to add it to the class bookshelf.
         </p>
 
-        <form onSubmit={handleSearch} className="mt-6 max-w-lg mx-auto flex gap-3">
+        <form onSubmit={handleSearch} className="mt-6 flex gap-2 max-w-lg">
           <div className="relative flex-1">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by title..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-amber-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-amber-900 dark:text-amber-100 placeholder-amber-400 dark:placeholder-amber-500/50 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-sm"
+              placeholder="Title, author, or keyword..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 text-sm focus:outline-none focus:ring-2 focus:ring-stone-900/10 dark:focus:ring-stone-100/10 focus:border-stone-300 dark:focus:border-stone-600 transition-all"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors font-medium shadow-sm disabled:opacity-50"
+            className="px-5 py-2.5 text-sm font-medium bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors disabled:opacity-40"
           >
             {loading ? "Searching..." : "Search"}
           </button>
         </form>
       </section>
 
+      <div className="border-t border-stone-200 dark:border-stone-800" />
+
       {/* Results */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
+      <section className="max-w-7xl mx-auto px-6 py-10">
         {saveError && (
-          <p className="mb-6 text-red-600 text-sm text-center bg-red-50 dark:bg-red-900/20 py-2 rounded-lg">
-            Error saving: {saveError}
-          </p>
+          <div className="mb-6 px-4 py-2.5 text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
+            {saveError}
+          </div>
         )}
 
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="h-8 w-8 border-4 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+          <div className="flex justify-center py-24">
+            <div className="h-5 w-5 border-2 border-stone-300 dark:border-stone-600 border-t-stone-900 dark:border-t-stone-100 rounded-full animate-spin" />
           </div>
         )}
 
         {!loading && results.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
             {results.map((book) => (
               <button
                 key={book.key}
                 onClick={() => handleSave(book)}
-                className="group flex flex-col items-center text-center gap-3 cursor-pointer"
+                className="group text-left cursor-pointer"
               >
-                <div className="relative w-[140px] h-[210px] rounded-lg overflow-hidden shadow-md group-hover:shadow-xl group-hover:ring-2 group-hover:ring-amber-400 transition-all duration-300 bg-amber-100 dark:bg-gray-800">
+                <div className="relative aspect-[2/3] w-full rounded-md overflow-hidden bg-stone-100 dark:bg-stone-800 shadow-sm group-hover:shadow-lg group-hover:ring-2 group-hover:ring-stone-900/20 dark:group-hover:ring-stone-100/20 transition-all duration-200">
                   {savedKey === book.key && (
-                    <span className="absolute top-2 right-2 z-10 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full shadow font-medium">
-                      Saved!
-                    </span>
+                    <div className="absolute inset-0 z-10 bg-stone-900/70 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">Added</span>
+                    </div>
                   )}
                   {book.cover_i ? (
                     <Image
                       src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
                       alt={book.title}
                       fill
-                      sizes="140px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                      className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-3 text-amber-800/40 dark:text-amber-200/30">
-                      <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span className="text-xs">No Cover</span>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-stone-300 dark:text-stone-600 text-xs">No cover</span>
                     </div>
                   )}
                 </div>
-                <div className="max-w-[160px]">
-                  <h3 className="text-sm font-semibold text-amber-950 dark:text-amber-50 line-clamp-2 leading-tight">
-                    {book.title}
-                  </h3>
-                  {book.author_name && (
-                    <p className="text-xs text-amber-700/70 dark:text-amber-300/60 mt-1 line-clamp-1">
-                      {book.author_name[0]}
-                    </p>
-                  )}
-                  {book.first_publish_year && (
-                    <p className="text-xs text-amber-600/50 dark:text-amber-400/40 mt-0.5">
-                      {book.first_publish_year}
-                    </p>
-                  )}
-                </div>
+                <h3 className="mt-3 text-sm font-medium text-stone-900 dark:text-stone-100 leading-snug line-clamp-2">
+                  {book.title}
+                </h3>
+                {book.author_name && (
+                  <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400 line-clamp-1">
+                    {book.author_name[0]}
+                  </p>
+                )}
+                {book.first_publish_year && (
+                  <p className="text-xs text-stone-400 dark:text-stone-500">
+                    {book.first_publish_year}
+                  </p>
+                )}
               </button>
             ))}
           </div>
         )}
 
         {!loading && results.length === 0 && query && (
-          <p className="text-center text-amber-600/60 dark:text-amber-400/60 py-20 text-lg">
-            No results found.
+          <p className="text-center text-stone-400 dark:text-stone-500 py-24 text-sm">
+            No results found for &ldquo;{query}&rdquo;
           </p>
         )}
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-amber-200 dark:border-gray-800 py-6 text-center text-xs text-amber-600/50 dark:text-amber-400/30">
-        Class Bookshelf &middot; Built with Next.js, Supabase &amp; Clerk
-      </footer>
     </div>
   );
 }
