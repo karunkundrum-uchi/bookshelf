@@ -46,14 +46,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           {!isLoaded ? null : user ? (
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "w-8 h-8",
-                },
-              }}
-            />
+            <UserButton />
           ) : (
             <>
               <SignInButton mode="redirect">
