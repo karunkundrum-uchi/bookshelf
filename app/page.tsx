@@ -1,10 +1,8 @@
 "use client";
 
-import { useUser, SignOutButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { supabasePublic } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 
 interface Favorite {
   id: number;
@@ -17,7 +15,6 @@ interface Favorite {
 }
 
 export default function Home() {
-  const { user, isLoaded } = useUser();
   const [books, setBooks] = useState<Favorite[]>([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
 
@@ -33,55 +30,8 @@ export default function Home() {
     fetchBooks();
   }, []);
 
-  if (!isLoaded) return null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 dark:from-gray-950 dark:to-gray-900">
-      {/* Header */}
-      <header className="border-b border-amber-200 dark:border-gray-800 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-amber-900 dark:text-amber-100 tracking-tight">
-            Class Bookshelf
-          </h1>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                <Link
-                  href="/my-books"
-                  className="px-4 py-2 border border-amber-600 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium"
-                >
-                  My Books
-                </Link>
-                <Link
-                  href="/search"
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
-                >
-                  + Add Books
-                </Link>
-                <SignOutButton>
-                  <button className="px-3 py-2 text-xs text-gray-500 hover:text-red-600 transition-colors">
-                    Sign Out
-                  </button>
-                </SignOutButton>
-              </>
-            ) : (
-              <>
-                <SignInButton mode="redirect">
-                  <button className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium">
-                    Sign In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="redirect">
-                  <button className="px-4 py-2 border border-amber-600 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium">
-                    Create Account
-                  </button>
-                </SignUpButton>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 bg-gradient-to-b from-amber-50 to-orange-50 dark:from-gray-950 dark:to-gray-900">
       {/* Hero + Search */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
         <h2 className="text-5xl font-extrabold text-amber-900 dark:text-amber-100 tracking-tight">
@@ -90,11 +40,6 @@ export default function Home() {
         <p className="mt-4 text-lg text-amber-700 dark:text-amber-300 max-w-xl mx-auto">
           A shared collection of books loved by our class. Sign in to add your favorites.
         </p>
-        {user && (
-          <p className="mt-2 text-sm text-amber-600/70 dark:text-amber-400/70">
-            Signed in as {user.primaryEmailAddress?.emailAddress}
-          </p>
-        )}
 
         {/* Search Bar */}
         <form
