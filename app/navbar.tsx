@@ -11,7 +11,7 @@ export default function Navbar() {
   const links = [
     { href: "/", label: "Home" },
     { href: "/search", label: "Search" },
-    { href: "/my-books", label: "My Books" },
+    { href: "/my-movies", label: "My Movies" },
   ];
 
   return (
@@ -19,7 +19,7 @@ export default function Navbar() {
       <div className="max-w-[1400px] mx-auto px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
           <Link href="/" className="text-xl font-black tracking-tighter text-white uppercase">
-            Bookshelf
+            Movieshelf
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
             {links.map((link) => {
