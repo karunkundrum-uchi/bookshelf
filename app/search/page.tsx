@@ -14,6 +14,8 @@ interface SearchResult {
   overview?: string;
 }
 
+const RATING_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 export default function SearchPage() {
   return (
     <Suspense>
@@ -32,13 +34,17 @@ function SearchContent() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [savedId, setSavedId] = useState<number | null>(null);
+  const [savingId, setSavingId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const [pendingRating, setPendingRating] = useState<string>("");
 
   async function doSearch(term: string) {
     if (!term.trim()) return;
     setLoading(true);
     setSavedId(null);
     setSaveError(null);
+    setPendingId(null);
     try {
       const res = await fetch(`/api/movies/search?q=${encodeURIComponent(term)}`);
       const data = await res.json();
@@ -60,11 +66,26 @@ function SearchContent() {
     doSearch(query);
   }
 
-  async function handleSave(movie: SearchResult) {
+  function openRatingPicker(movie: SearchResult) {
+    setSaveError(null);
+    setSavedId(null);
+    setPendingId(movie.id);
+    setPendingRating("");
+  }
+
+  function cancelRatingPicker() {
+    setPendingId(null);
+    setPendingRating("");
+  }
+
+  async function handleSave(movie: SearchResult, ratingRaw: string) {
     if (!session || !user) return;
+
+    const rating = ratingRaw === "" ? null : parseInt(ratingRaw, 10);
 
     setSavedId(null);
     setSaveError(null);
+    setSavingId(movie.id);
 
     const supabase = createClerkSupabaseClient(() =>
       session.getToken({ template: "supabase" })
@@ -84,12 +105,17 @@ function SearchContent() {
       year,
       poster_url: posterUrl,
       tmdb_id: movie.id,
+      rating,
     });
+
+    setSavingId(null);
 
     if (error) {
       setSaveError(error.message);
     } else {
       setSavedId(movie.id);
+      setPendingId(null);
+      setPendingRating("");
     }
   }
 
@@ -148,50 +174,105 @@ function SearchContent() {
               <div className="flex-1 h-px bg-white/5" />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-              {results.map((movie) => (
-                <button
-                  key={movie.id}
-                  onClick={() => handleSave(movie)}
-                  className="group text-left cursor-pointer"
-                >
-                  <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900 ring-1 ring-white/5 group-hover:ring-green-400/50 group-hover:shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)] transition-all duration-300">
-                    {savedId === movie.id && (
-                      <div className="absolute inset-0 z-10 bg-black/80 flex items-center justify-center backdrop-blur-sm">
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              {results.map((movie) => {
+                const isPending = pendingId === movie.id;
+                const isSaving = savingId === movie.id;
+                const isSaved = savedId === movie.id;
+                return (
+                  <div
+                    key={movie.id}
+                    className="group text-left"
+                  >
+                    <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900 ring-1 ring-white/5 group-hover:ring-green-400/50 group-hover:shadow-[0_0_30px_-5px_rgba(74,222,128,0.3)] transition-all duration-300">
+                      {/* Saved confirmation overlay */}
+                      {isSaved && (
+                        <div className="absolute inset-0 z-20 bg-black/80 flex items-center justify-center backdrop-blur-sm">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                            <span className="text-white text-xs font-bold uppercase tracking-wider">Added</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Rating picker overlay */}
+                      {isPending && !isSaved && (
+                        <div className="absolute inset-0 z-10 bg-black/90 flex flex-col items-center justify-center p-4 backdrop-blur-sm gap-3">
+                          <p className="text-white text-xs font-bold uppercase tracking-widest text-center">
+                            Rate it (optional)
+                          </p>
+                          <select
+                            value={pendingRating}
+                            onChange={(e) => setPendingRating(e.target.value)}
+                            disabled={isSaving}
+                            className="w-full bg-white/10 border border-white/20 text-white text-sm rounded-md px-3 py-2 focus:outline-none focus:border-amber-400/60 cursor-pointer"
+                          >
+                            <option value="" className="bg-zinc-900">— no rating</option>
+                            {RATING_OPTIONS.map((n) => (
+                              <option key={n} value={n} className="bg-zinc-900">
+                                {n} / 10
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex gap-2 w-full">
+                            <button
+                              onClick={() => handleSave(movie, pendingRating)}
+                              disabled={isSaving}
+                              className="flex-1 px-3 py-2 bg-white text-black text-xs font-bold rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                              {isSaving ? "Adding..." : "Add"}
+                            </button>
+                            <button
+                              onClick={cancelRatingPicker}
+                              disabled={isSaving}
+                              className="px-3 py-2 bg-white/10 text-white text-xs font-bold rounded-md hover:bg-white/20 transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Main clickable poster */}
+                      <button
+                        onClick={() => openRatingPicker(movie)}
+                        disabled={isPending || isSaving || isSaved}
+                        className="absolute inset-0 cursor-pointer disabled:cursor-default"
+                        aria-label={`Add ${movie.title}`}
+                      >
+                        {movie.poster_path ? (
+                          <Image
+                            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                            alt={movie.title}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                             </svg>
                           </div>
-                          <span className="text-white text-xs font-bold uppercase tracking-wider">Added</span>
+                        )}
+                      </button>
+
+                      {/* Bottom info on hover */}
+                      {!isPending && !isSaved && (
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                          <p className="text-white text-xs font-bold line-clamp-2">{movie.title}</p>
+                          {movie.release_date && (
+                            <p className="text-zinc-400 text-[11px]">{movie.release_date.slice(0, 4)}</p>
+                          )}
                         </div>
-                      </div>
-                    )}
-                    {movie.poster_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        alt={movie.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-700">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                        </svg>
-                      </div>
-                    )}
-                    {/* Bottom info on hover */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-white text-xs font-bold line-clamp-2">{movie.title}</p>
-                      {movie.release_date && (
-                        <p className="text-zinc-400 text-[11px]">{movie.release_date.slice(0, 4)}</p>
                       )}
                     </div>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { supabasePublic } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -12,11 +12,52 @@ interface Movie {
   year: number | null;
   poster_url: string;
   tmdb_id: number;
+  rating: number | null;
   created_at: string;
 }
 
+interface AggregatedMovie {
+  tmdb_id: number;
+  title: string;
+  year: number | null;
+  poster_url: string;
+  avgRating: number | null;
+  ratingCount: number;
+  totalAdds: number;
+}
+
+function aggregate(movies: Movie[]): AggregatedMovie[] {
+  const groups = new Map<number, Movie[]>();
+  for (const m of movies) {
+    const arr = groups.get(m.tmdb_id);
+    if (arr) arr.push(m);
+    else groups.set(m.tmdb_id, [m]);
+  }
+
+  const result: AggregatedMovie[] = [];
+  for (const [tmdb_id, rows] of groups) {
+    // rows are in fetch order (created_at desc) — first row is the most-recent add
+    const rep = rows[0];
+    const rated = rows.filter((r) => r.rating !== null) as (Movie & { rating: number })[];
+    const avgRating =
+      rated.length > 0
+        ? rated.reduce((s, r) => s + r.rating, 0) / rated.length
+        : null;
+    result.push({
+      tmdb_id,
+      title: rep.title,
+      year: rep.year,
+      poster_url: rep.poster_url,
+      avgRating,
+      ratingCount: rated.length,
+      totalAdds: rows.length,
+    });
+  }
+  return result;
+}
+
 export default function Home() {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [rows, setRows] = useState<Movie[]>([]);
   const [loadingMovies, setLoadingMovies] = useState(true);
 
   useEffect(() => {
@@ -25,13 +66,15 @@ export default function Home() {
         .from("movies")
         .select("*")
         .order("created_at", { ascending: false });
-      setMovies(data ?? []);
+      setRows((data ?? []) as Movie[]);
       setLoadingMovies(false);
     }
     fetchMovies();
   }, []);
 
-  // Duplicate posters for marquee effect
+  const movies = useMemo(() => aggregate(rows), [rows]);
+
+  // Duplicate posters for marquee effect (unique movies only)
   const moviesWithPosters = movies.filter((m) => m.poster_url);
   const marqueeMovies = [...moviesWithPosters, ...moviesWithPosters, ...moviesWithPosters, ...moviesWithPosters];
 
@@ -73,7 +116,7 @@ export default function Home() {
 
           {!loadingMovies && movies.length > 0 && (
             <p className="mt-6 text-sm text-zinc-500">
-              {movies.length} movies in the collection
+              {movies.length} {movies.length === 1 ? "movie" : "movies"} in the collection
             </p>
           )}
         </div>
@@ -92,7 +135,7 @@ export default function Home() {
         <section className="py-4 overflow-hidden border-t border-b border-white/5">
           <div className="flex animate-marquee" style={{ width: `${marqueeMovies.length * 100}px` }}>
             {marqueeMovies.map((movie, i) => (
-              <div key={`${movie.id}-${i}`} className="flex-shrink-0 w-[88px] h-[132px] mx-1 rounded overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+              <div key={`${movie.tmdb_id}-${i}`} className="flex-shrink-0 w-[88px] h-[132px] mx-1 rounded overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
                 <Image
                   src={movie.poster_url}
                   alt={movie.title}
@@ -127,7 +170,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
               {movies.map((movie) => (
-                <div key={movie.id} className="group">
+                <div key={movie.tmdb_id} className="group">
                   <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900 ring-1 ring-white/5 group-hover:ring-orange-400/50 group-hover:shadow-[0_0_30px_-5px_rgba(251,146,60,0.3)] transition-all duration-300">
                     {movie.poster_url ? (
                       <Image
@@ -144,10 +187,31 @@ export default function Home() {
                         </svg>
                       </div>
                     )}
+
+                    {/* Persistent rating badge (always visible when rated) */}
+                    {movie.avgRating !== null && (
+                      <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm text-amber-300 text-xs font-bold tracking-tight flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        {movie.avgRating.toFixed(1)}
+                      </div>
+                    )}
+
                     {/* Hover info overlay */}
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3 pt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <p className="text-white text-xs font-bold line-clamp-2">{movie.title}</p>
                       {movie.year && <p className="text-zinc-400 text-[11px]">{movie.year}</p>}
+                      <p className="text-zinc-300 text-[11px] mt-1">
+                        {movie.ratingCount > 0 ? (
+                          <>
+                            <span className="text-amber-300 font-bold">{movie.avgRating!.toFixed(1)}</span>
+                            <span className="text-zinc-400"> / 10 · {movie.ratingCount} {movie.ratingCount === 1 ? "rating" : "ratings"}</span>
+                          </>
+                        ) : (
+                          <span className="text-zinc-500">No ratings yet</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
